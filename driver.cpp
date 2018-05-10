@@ -91,7 +91,8 @@ int main(int argc, char* argv []) {
 
 	else if ( op == "-rev" ) {
 		getParams(0, params, argv, currentArg, argc, inFile, inFile2);
-	
+		if ()
+		AudioClip
 	}
 
 	else if ( op == "-rms" ) {

@@ -11,7 +11,9 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <sstream>
+#include <algorithm>
 
 namespace WHTMIC023 {
 
@@ -19,14 +21,14 @@ namespace WHTMIC023 {
 	template <typename T>
 	class AudioClip {
 		private:
-			int sampleRate, bitCount;
+			int sampleRate, bitCount, numSamples;
 			std::vector <T> samples;
 
 		public:
 			// special member functions
 			AudioClip(std::string filename, int sampleRate, int bitCount);
 
-			// abstract functions
+			// other functions
 			AudioClip add(AudioClip& otherClip);
 
 			AudioClip cut(float r1, float r2);
@@ -48,13 +50,21 @@ namespace WHTMIC023 {
 			AudioClip fadeout(float r1, float r2);
 
 			void write(std::string outfile);
+
+			vector<T>::iterator begin() {
+				return samples.begin();
+			}
+
+			vector<T>::iterator end() {
+				return samples.end();
+			}
 	};
 
 	// AudioClip specialized for stereo
 	template <typename T> 
 	class AudioClip < std::pair<T,T> > {
 		private:
-			int sampleRate, bitCount;
+			int sampleRate, bitCount, numSamples;
 			std::vector < std::pair<T,T> > samples;
 
 		public:
@@ -82,7 +92,15 @@ namespace WHTMIC023 {
 
 			AudioClip fadeout(float r1, float r2);
 	
-			void write(std::string outfile);	
+			void write(std::string outfile);
+
+			vector< pair<T,T> >::iterator begin() {
+				return samples.begin();
+			}
+
+			vector< pair<T,T> >::iterator end() {
+				return samples.end();
+			}
 	};
 
 }
