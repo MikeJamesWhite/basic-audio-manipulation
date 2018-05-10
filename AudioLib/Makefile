@@ -5,14 +5,14 @@ CC=g++
 TARGET=libaudio.so
 FLAGS=-fPIC -shared -std=c++11
 
-$(TARGET): mono.o stereo.o
-	$(CC) -o $(TARGET) mono.o stereo.o $(FLAGS)
+$(TARGET): audio.hpp
+	$(CC) -o $(TARGET) audio.hpp $(FLAGS)
 
-mono.o: mono.cpp audio.h
-	$(CC) -c -o mono.o mono.cpp $(FLAGS)
+#mono.o: mono.hpp audio.h
+#	$(CC) -c -o mono.o mono.hpp $(FLAGS)
 
-stereo.o: stereo.cpp audio.h
-	$(CC) -c -o stereo.o stereo.cpp $(FLAGS)
+#stereo.o: stereo.hpp audio.h
+#	$(CC) -c -o stereo.o stereo.hpp $(FLAGS)
 
 clean:
 	rm -f *.o *.so

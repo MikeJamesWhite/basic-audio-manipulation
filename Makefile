@@ -4,11 +4,13 @@
 CC=g++
 TARGET=samp
 LIB = ./AudioLib
-FLAGS=-std=c++11 -I ./AudioLib -L ./AudioLib -laudio
+FLAGS=-std=c++11
+#-I ./AudioLib -L ./AudioLib -laudio
+SOUNDFILEDIR=./sample_input
 
 .PHONY: clean
 
-$(TARGET): driver.o
+$(TARGET): driver.o $(LIB)/audio.hpp
 	make -C $(LIB)
 	$(CC) -o $(TARGET) driver.o $(FLAGS)
 
@@ -26,6 +28,54 @@ clean:
 	rm -f *.o ./$(TARGET) ./testRunner
 	make -C $(LIB) clean
 
-run: $(TARGET)
+add: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp 
+	./samp -r 41000 -b 8 -c 1 -o test -add inputFile inputFile2
+
+cut: $(TARGET)
+	export LD_LIBRARY_PATH=$(LIB)/; \
+	./samp -r 41000 -b 8 -c 1 -o test -cut range1 range2 inputFile inputFile2
+
+rangeadd: $(TARGET)
+	export LD_LIBRARY_PATH=$(LIB)/; \
+	./samp -r 41000 -b 8 -c 1 -o test -radd range1 range2 range3 range4 inputFile inputFile2
+
+concatenate: $(TARGET)
+	export LD_LIBRARY_PATH=$(LIB)/; \
+	./samp -r 41000 -b 8 -c 1 -o test -cat inputFile inputFile2
+
+volume: $(TARGET)
+	export LD_LIBRARY_PATH=$(LIB)/; \
+	./samp -r 41000 -b 8 -c 1 -o test -v factor1 factor2 inputFile  
+
+reverse: $(TARGET)
+	export LD_LIBRARY_PATH=$(LIB)/; \
+	./samp -r 44100 -b 8 -c 1 -o test -rev $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw  
+
+rms: $(TARGET)
+	export LD_LIBRARY_PATH=$(LIB)/; \
+	./samp -r 41000 -b 8 -c 1 -o test -rms inputFile  
+
+norm: $(TARGET)
+	export LD_LIBRARY_PATH=$(LIB)/; \
+	./samp -r 41000 -b 8 -c 1 -o test -norm rms1 rms2 inputFile  
+
+fadein: $(TARGET)
+	export LD_LIBRARY_PATH=$(LIB)/; \
+	./samp -r 41000 -b 8 -c 1 -o test -fadein numSeconds inputFile  
+
+fadeout: $(TARGET)
+	export LD_LIBRARY_PATH=$(LIB)/; \
+	./samp -r 41000 -b 8 -c 1 -o test -fadeout numSeconds inputFile  
+
+play:
+	play -r 44100 -b 8 -c 1 -e signed test_44100_8_mono.raw
+
+play16:
+	play -r 44100 -b 16 -c 1 -e signed test_44100_16_mono.raw
+
+play_st:
+	play -r 44100 -b 8 -c 2 -e signed test_44100_8_stereo.raw
+
+play_st16:
+	play -r 44100 -b 16 -c 2 -e signed test_44100_16_stereo.raw
