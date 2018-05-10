@@ -9,52 +9,81 @@
  */
 
 #include <vector>
-#include <cstlib>
 #include <string>
+#include <iostream>
+#include <sstream>
 
 namespace WHTMIC023 {
 
-	// Abstract AudioClip base class
+	// Standard AudioClip for mono files
 	template <typename T>
 	class AudioClip {
 		private:
 			int sampleRate, bitCount;
-
-		public:
-			// constructor
-			AudioClip(int sampleRate, int bitCount) : sampleRate(sampleRate), bitCount(bitCount) {}
-
-
-	};
-
-
-	// Concrete mono subclass
-	template <typename T>
-	class MonoAudioClip : AudioClip { 
-		private:
 			std::vector <T> samples;
 
 		public:
 			// special member functions
+			AudioClip(std::string filename, int sampleRate, int bitCount);
 
-			MonoAudioClip(std::string filename, int sampleRate, int bitCount) : AudioClip(sampleRate, bitCount);
+			// abstract functions
+			AudioClip add(AudioClip& otherClip);
 
+			AudioClip cut(float r1, float r2);
 
-	}
+			AudioClip rangeadd(AudioClip& otherClip, float r1, float r2, float s1, float s2);
 
-	// Concrete stereo subclass
-	template <typename T>
-	class StereoAudioClip : AudioClip {
+			AudioClip concatenate(AudioClip& otherClip);
+
+			AudioClip volume(float v1, float v2);
+
+			AudioClip reverse(void);
+
+			AudioClip rms(void);
+
+			AudioClip normalize(void);
+
+			AudioClip fadein(float r1, float r2);
+
+			AudioClip fadeout(float r1, float r2);
+
+			void write(std::string outfile);
+	};
+
+	// AudioClip specialized for stereo
+	template <typename T> 
+	class AudioClip < std::pair<T,T> > {
 		private:
-			std::vector < std::pair<T> > samples;
+			int sampleRate, bitCount;
+			std::vector < std::pair<T,T> > samples;
 
 		public:
 			// special member functions
+			AudioClip(std::string filename, int sampleRate, int bitCount);
 
-			StereoAudioClip(std::string filename, int sampleRate, int bitCount) : AudioClip(sampleRate, bitCount);
-		
-	}
+			// other functions
+			AudioClip add(AudioClip& otherClip);
 
+			AudioClip cut(float r1, float r2);
+
+			AudioClip rangeadd(AudioClip& otherClip, float r1, float r2, float s1, float s2);
+
+			AudioClip concatenate(AudioClip& otherClip);
+
+			AudioClip volume(float v1, float v2);
+
+			AudioClip reverse(void);
+
+			AudioClip rms(void);
+
+			AudioClip normalize(void);
+
+			AudioClip fadein(float r1, float r2);
+
+			AudioClip fadeout(float r1, float r2);
+	
+			void write(std::string outfile);	
+	};
 
 }
 

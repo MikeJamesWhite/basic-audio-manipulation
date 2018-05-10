@@ -1,5 +1,5 @@
 /**
- * Implementation file for Audio Library
+ * Implementation file for AudioLib
  *
  * Author: Mike James White
  * Date: 09/05/2018

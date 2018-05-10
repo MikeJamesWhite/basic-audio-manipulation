@@ -6,13 +6,31 @@
  */
 
 #include "audio.h"
-#include <iostream>
 
 using namespace WHTMIC023;
 using namespace std;
 
+void getParams(int numParams, vector<float>& params, char * argv [], int & currentArg, int & argc, string & inFile, string& inFile2) {
+	
+	// get additional parameters
+	for (int i = 0; i < numParams; i++) {
+		float f;
+		istringstream ss = istringstream(argv[currentArg]);
+		ss >> f;
+		params.push_back(f);
+		currentArg++;
+	}
+
+	// get input files
+	inFile = string(argv[currentArg]);
+	currentArg++;
+
+	if (currentArg < argc)
+		inFile2 = string(argv[currentArg]);
+}
+
 int main(int argc, char* argv []) {
-	stringstream ss;
+	istringstream ss;
 	int rate, bitCount, numChannels;
 	string outFile, inFile, inFile2, op;
 	vector<float> params;
@@ -20,15 +38,15 @@ int main(int argc, char* argv []) {
 	int currentArg = 2;
 
 	// get required values
-	ss = stringstream( string(argv[currentArg]) );
+	ss = istringstream( string(argv[currentArg]) );
 	ss >> rate;
 	currentArg += 2;
 
-	ss = stringstream( string(argv[currentArg]) );
+	ss = istringstream( string(argv[currentArg]) );
 	ss >> bitCount;
 	currentArg += 2;
 
-	ss = stringstream( string(argv[currentArg]) );
+	ss = istringstream( string(argv[currentArg]) );
 	ss >> numChannels;
 	currentArg++;
 
@@ -43,84 +61,64 @@ int main(int argc, char* argv []) {
 	}
 
 	// get op + extra params and run
-	op = string(argv[currentArg]);
+	op = argv[currentArg];
 	currentArg++;
 
-	switch(op) {
-		case ("-add"): //no params
-			getParams(0, &params, &argv, &currentArg, &argc, &inFile, &inFile2);
+	if (op == "-add" ) {
+		getParams(0, params, argv, currentArg, argc, inFile, inFile2);
 
-			break;
+	}
 
-		case("-cut"):
-			getParams(2, &params, &argv, &currentArg, &argc, &inFile, &inFile2);
-			
-			break;
+	else if ( op == "-cut" ) {
+		getParams(2, params, argv, currentArg, argc, inFile, inFile2);	
+	
+	}
 
-		case ("-radd"):
-			getParams(2, &params, &argv, &currentArg, &argc, &inFile, &inFile2);
+	else if ( op == "-radd" ) {
+		getParams(2, params, argv, currentArg, argc, inFile, inFile2);
+	
+	}
 
-			break;
+	else if ( op == "-cat" ) {
+		getParams(0, params, argv, currentArg, argc, inFile, inFile2);
+	
+	}
 
-		case("-cat"): // no params
-			getParams(0, &params, &argv, &currentArg, &argc, &inFile, &inFile2);
+	else if ( op == "-v" ) {
+		getParams(2, params, argv, currentArg, argc, inFile, inFile2);
+	
+	}
 
-			break;
+	else if ( op == "-rev" ) {
+		getParams(0, params, argv, currentArg, argc, inFile, inFile2);
+	
+	}
 
-		case("-v"):
-			getParams(2, &params, &argv, &currentArg, &argc, &inFile, &inFile2);
+	else if ( op == "-rms" ) {
+		getParams(0, params, argv, currentArg, argc, inFile, inFile2);
+	
+	}
 
-			break;
+	else if ( op == "-norm" ) {
+		getParams(2, params, argv, currentArg, argc, inFile, inFile2);
+	
+	}
 
-		case ("-rev"): // no params
-			getParams(0, &params, &argv, &currentArg, &argc, &inFile, &inFile2);
+	else if ( op == "-fadein" ) {
+		getParams(2, params, argv, currentArg, argc, inFile, inFile2);
+	
+	}
 
-			break;
+	else if ( op == "-fadeout" ) {
+		getParams(2, params, argv, currentArg, argc, inFile, inFile2);
+	
+	}
 
-		case("-rms"): // no params
-			getParams(0, &params, &argv, &currentArg, &argc, &inFile, &inFile2);
-
-			break;
-
-		case ("-norm"):
-			getParams(2, &params, &argv, &currentArg, &argc, &inFile, &inFile2);
-
-			break;
-
-		case("-fadein"):
-			getParams(2, &params, &argv, &currentArg, &argc, &inFile, &inFile2);
-
-			break;
-
-		case("-fadeout"):
-			getParams(2, &params, &argv, &currentArg, &argc, &inFile, &inFile2);
-			
-			break;
-
-		default:
-			cout << "No matching command found! Exiting..." << endl;
-			return(1);
+	else {
+		cout << "No matching command found! Exiting..." << endl;
+		return(1);
 	}
 
 	cout << "Operation completed successfully!" << endl;
 	return 0;
-}
-
-void getParams(int numParams, vector<float>& params, char * argv [], int & currentArg, int & argc, string & inFile, string& inFile2) {
-	
-	// get additional parameters
-	for (int i = 0; i < numParams; i++) {
-		float f;
-		stringstream ss = stringstream(argv[currentArg]);
-		ss >> f;
-		params.push_back(f);
-		currentArg++;
-	}
-
-	// get input files
-	inFile = string(argv[currentArg]);
-	currentArg++;
-
-	if (currentArg < argc)
-		inFile2 = string(argv[currentArg]);
 }

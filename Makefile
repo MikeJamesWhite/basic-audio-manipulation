@@ -9,6 +9,7 @@ FLAGS=-std=c++11 -I ./AudioLib -L ./AudioLib -laudio
 .PHONY: clean
 
 $(TARGET): driver.o
+	make -C $(LIB)
 	$(CC) -o $(TARGET) driver.o $(FLAGS)
 
 driver.o: driver.cpp
@@ -27,16 +28,4 @@ clean:
 
 run: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp testinput.txt testoutput
-
-encode: $(TARGET)
-	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp testinput.txt testoutput -e
-
-decode: $(TARGET)
-	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp testoutput decoded.txt -d
-
-bitEncode: $(TARGET)
-	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp testinput.txt testoutput -be
+	./samp 
