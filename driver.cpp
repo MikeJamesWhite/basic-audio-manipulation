@@ -32,7 +32,7 @@ int main(int argc, char* argv []) {
 	ss >> numChannels;
 	currentArg++;
 
-	// get outfile if present
+	// get output file if present
 	if (string(argv[currentArg]) == "-o") {
 		currentArg++;
 		outFile = string(argv[currentArg]);
@@ -102,10 +102,13 @@ int main(int argc, char* argv []) {
 			return(1);
 	}
 
+	cout << "Operation completed successfully!" << endl;
 	return 0;
 }
 
 void getParams(int numParams, vector<float>& params, char * argv [], int & currentArg, int & argc, string & inFile, string& inFile2) {
+	
+	// get additional parameters
 	for (int i = 0; i < numParams; i++) {
 		float f;
 		stringstream ss = stringstream(argv[currentArg]);
@@ -114,11 +117,10 @@ void getParams(int numParams, vector<float>& params, char * argv [], int & curre
 		currentArg++;
 	}
 
-	// get infiles
+	// get input files
 	inFile = string(argv[currentArg]);
 	currentArg++;
 
 	if (currentArg < argc)
 		inFile2 = string(argv[currentArg]);
-
 }

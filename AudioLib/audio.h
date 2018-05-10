@@ -14,25 +14,45 @@
 
 namespace WHTMIC023 {
 
+	// Abstract AudioClip base class
 	template <typename T>
 	class AudioClip {
-		std::vector <T> samples;
+		private:
+			int sampleRate, bitCount;
 
-		AudioClip(std::string filename); // load an audio file
+		public:
+			// constructor
+			AudioClip(int sampleRate, int bitCount) : sampleRate(sampleRate), bitCount(bitCount) {}
 
 
 	};
 
+
+	// Concrete mono subclass
 	template <typename T>
-	class MonoAudioClip : AudioClip {
-		std::vector <T> samples;
+	class MonoAudioClip : AudioClip { 
+		private:
+			std::vector <T> samples;
+
+		public:
+			// special member functions
+
+			MonoAudioClip(std::string filename, int sampleRate, int bitCount) : AudioClip(sampleRate, bitCount);
+
 
 	}
 
+	// Concrete stereo subclass
 	template <typename T>
 	class StereoAudioClip : AudioClip {
-		std::vector < std::pair<T> > samples;
+		private:
+			std::vector < std::pair<T> > samples;
 
+		public:
+			// special member functions
+
+			StereoAudioClip(std::string filename, int sampleRate, int bitCount) : AudioClip(sampleRate, bitCount);
+		
 	}
 
 
