@@ -5,7 +5,7 @@
  * Date: 09/05/2018
  */
 
-#include "AudioLib/audio.hpp"
+#include "audio.hpp"
 
 using namespace WHTMIC023;
 using namespace std;
@@ -70,8 +70,18 @@ int main(int argc, char* argv []) {
 	if (op == "-add" ) {
 		getParams(0, params, argv, currentArg, argc, inFile, inFile2);
 		if (numChannels == 1) {
-
-
+			if (bitCount == 8) {
+				AudioClip<int8_t> inputAudio = AudioClip<int8_t> (inFile, rate, bitCount);
+				AudioClip<int8_t> inputAudio2 = AudioClip<int8_t> (inFile2, rate, bitCount);
+				AudioClip<int8_t> added = inputAudio.add(inputAudio2);
+				added.write(outFile);
+			}
+			else {
+				AudioClip<int16_t> inputAudio = AudioClip<int16_t> (inFile, rate, bitCount);
+				AudioClip<int16_t> inputAudio2 = AudioClip<int16_t> (inFile2, rate, bitCount);
+				AudioClip<int16_t> added = inputAudio.add(inputAudio2);
+				added.write(outFile);
+			}
 		}
 		else {
 
@@ -103,8 +113,18 @@ int main(int argc, char* argv []) {
 	else if ( op == "-cat" ) {
 		getParams(0, params, argv, currentArg, argc, inFile, inFile2);
 		if (numChannels == 1) {
-
-
+			if (bitCount == 8) {
+				AudioClip<int8_t> inputAudio = AudioClip<int8_t> (inFile, rate, bitCount);
+				AudioClip<int8_t> inputAudio2 = AudioClip<int8_t> (inFile2, rate, bitCount);
+				AudioClip<int8_t> added = inputAudio.concatenate(inputAudio2);
+				added.write(outFile);
+			}
+			else {
+				AudioClip<int16_t> inputAudio = AudioClip<int16_t> (inFile, rate, bitCount);
+				AudioClip<int16_t> inputAudio2 = AudioClip<int16_t> (inFile2, rate, bitCount);
+				AudioClip<int16_t> added = inputAudio.concatenate(inputAudio2);
+				added.write(outFile);
+			}
 		}
 		else {
 			

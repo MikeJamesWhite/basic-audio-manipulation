@@ -4,8 +4,7 @@
 CC=g++
 TARGET=samp
 LIB = ./AudioLib
-FLAGS=-std=c++11
-#-I ./AudioLib -L ./AudioLib -laudio
+FLAGS=-std=c++11 -I ./AudioLib -L ./AudioLib -laudio
 SOUNDFILEDIR=./sample_input
 
 .PHONY: clean
@@ -42,7 +41,7 @@ rangeadd: $(TARGET)
 
 concatenate: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 41000 -b 8 -c 1 -o test -cat inputFile inputFile2
+	./samp -r 44100 -b 8 -c 1 -o test -cat $(SOUNDFILEDIR)/frogs18sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw
 
 volume: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
@@ -51,6 +50,10 @@ volume: $(TARGET)
 reverse: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
 	./samp -r 44100 -b 8 -c 1 -o test -rev $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw  
+
+reverse_st: $(TARGET)
+	export LD_LIBRARY_PATH=$(LIB)/; \
+	./samp -r 44100 -b 16 -c 2 -o test -rev $(SOUNDFILEDIR)/countdown40sec_44100_signed_16bit_stereo.raw  
 
 rms: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
