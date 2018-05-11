@@ -91,8 +91,16 @@ int main(int argc, char* argv []) {
 	else if ( op == "-cut" ) {
 		getParams(2, params, argv, currentArg, argc, inFile, inFile2);	
 		if (numChannels == 1) {
-
-
+			if (bitCount == 8) {
+				AudioClip<int8_t> inputAudio = AudioClip<int8_t> (inFile, rate, bitCount);
+				AudioClip<int8_t> cut = inputAudio.cut((int) params[0], (int) params[1]);
+				cut.write(outFile);
+			}
+			else {
+				AudioClip<int16_t> inputAudio = AudioClip<int16_t> (inFile, rate, bitCount);
+				AudioClip<int16_t> cut = inputAudio.cut((int) params[0], (int) params[1]);
+				cut.write(outFile);
+			}
 		}
 		else {
 			
@@ -134,8 +142,16 @@ int main(int argc, char* argv []) {
 	else if ( op == "-v" ) {
 		getParams(2, params, argv, currentArg, argc, inFile, inFile2);
 		if (numChannels == 1) {
-
-
+			if (bitCount == 8) {
+				AudioClip<int8_t> inputAudio = AudioClip<int8_t> (inFile, rate, bitCount);
+				AudioClip<int8_t> quieter = inputAudio.volume(params[0], params[1]);
+				quieter.write(outFile);
+			}
+			else {
+				AudioClip<int16_t> inputAudio = AudioClip<int16_t> (inFile, rate, bitCount);
+				AudioClip<int16_t> quieter = inputAudio.volume(params[0], params[1]);
+				quieter.write(outFile);				
+			}
 		}
 		else {
 			

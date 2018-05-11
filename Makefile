@@ -29,15 +29,15 @@ clean:
 
 add: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 41000 -b 8 -c 1 -o test -add inputFile inputFile2
+	./samp -r 44100 -b 8 -c 1 -o test -add $(SOUNDFILEDIR)/frogs18sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/frogs18sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw
 
 cut: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 41000 -b 8 -c 1 -o test -cut range1 range2 inputFile inputFile2
+	./samp -r 44100 -b 8 -c 1 -o test -cut 0 200000 $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/frogs18sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw
 
 rangeadd: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 41000 -b 8 -c 1 -o test -radd range1 range2 range3 range4 inputFile inputFile2
+	./samp -r 44100 -b 8 -c 1 -o test -radd range1 range2 range3 range4 inputFile inputFile2
 
 concatenate: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
@@ -45,11 +45,11 @@ concatenate: $(TARGET)
 
 volume: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 41000 -b 8 -c 1 -o test -v factor1 factor2 inputFile  
+	./samp -r 44100 -b 8 -c 1 -o test -v 0.5 0.5 $(SOUNDFILEDIR)/frogs18sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw
 
 reverse: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 44100 -b 8 -c 1 -o test -rev $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw  
+	./samp -r 44100 -b 16 -c 1 -o test -rev $(SOUNDFILEDIR)/countdown40sec_44100_signed_16bit_mono.raw  
 
 reverse_st: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
@@ -57,19 +57,19 @@ reverse_st: $(TARGET)
 
 rms: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 41000 -b 8 -c 1 -o test -rms inputFile  
+	./samp -r 44100 -b 8 -c 1 -o test -rms inputFile  
 
 norm: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 41000 -b 8 -c 1 -o test -norm rms1 rms2 inputFile  
+	./samp -r 44100 -b 8 -c 1 -o test -norm rms1 rms2 inputFile  
 
 fadein: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 41000 -b 8 -c 1 -o test -fadein numSeconds inputFile  
+	./samp -r 44100 -b 8 -c 1 -o test -fadein numSeconds inputFile  
 
 fadeout: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 41000 -b 8 -c 1 -o test -fadeout numSeconds inputFile  
+	./samp -r 44100 -b 8 -c 1 -o test -fadeout numSeconds inputFile  
 
 play:
 	play -r 44100 -b 8 -c 1 -e signed test_44100_8_mono.raw

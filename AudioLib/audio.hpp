@@ -2,7 +2,8 @@
 #define AUDIO_LIB
 
 /**
- * Header file for Audio Library
+ * Audio Library for performing various transformations on audio clips.
+ * (Supports 8/16 bit mono/stereo RAW audio files)
  *
  * Author: Mike James White
  * Date: 09/05/2018
@@ -27,7 +28,7 @@ namespace WHTMIC023 {
 	template <typename T>
 	class AudioClip {
 		private:
-			int sampleRate, bitCount, numSamples;
+			int sampleRate, bitCount, numSamples, MIN, MAX;
 			std::vector <T> samples;
 
 		public:
@@ -35,11 +36,24 @@ namespace WHTMIC023 {
 			// SPECIAL MEMBER FUNCTIONS
 			// ***
 
-			// constructor
+			// default constructor
+			AudioClip() { }
+
+			// file constructor
 			AudioClip(std::string filename, int sampleRate, int bitCount): sampleRate(sampleRate), bitCount(bitCount) {
 				cout << "Loading in new Audio Clip..." << endl;
 				cout << "Opening: " << filename << endl;
 				std::ifstream in = std::ifstream(filename, std::ios::binary);
+				
+				// set max and min for clamping
+				if (bitCount == 8) {
+					MAX = INT8_MAX;
+					MIN = INT8_MIN;
+				}
+				else {
+					MAX = INT16_MAX;
+					MIN = INT16_MIN;
+				}
 
 				// calculate filesize
 				int fileSize;
@@ -56,7 +70,16 @@ namespace WHTMIC023 {
 				T tmp;
 
 				for (int i = 0; i < numSamples; i++) {
-					in >> tmp;
+					if (bitCount == 8) {
+						in >> tmp;
+					}
+					else {
+						uint8_t x, y;
+						in.read(reinterpret_cast<char*>(&x), sizeof(x));
+						in.read(reinterpret_cast<char*>(&y), sizeof(y));
+						tmp = (int8_t) x | ((int8_t) y << 8);
+					}
+
 					samples[i] = tmp;
 				}
 
@@ -74,6 +97,8 @@ namespace WHTMIC023 {
 				sampleRate = otherClip.sampleRate;
 				bitCount = otherClip.bitCount;
 				numSamples = otherClip.numSamples;
+				MAX = otherClip.MAX;
+				MIN = otherClip.MIN;
 				samples = std::vector<T>(otherClip.samples);
 				cout << "Copied Size: " << samples.size() << " samples" << endl;
 			}
@@ -86,6 +111,8 @@ namespace WHTMIC023 {
 				sampleRate = otherClip.sampleRate;
 				bitCount = otherClip.bitCount;
 				numSamples = otherClip.numSamples;
+				MAX = otherClip.MAX;
+				MIN = otherClip.MIN;
 				samples.swap(otherClip.samples);				
 			}
 
@@ -97,6 +124,8 @@ namespace WHTMIC023 {
 				sampleRate = rhs.sampleRate;
 				bitCount = rhs.bitCount;
 				numSamples = rhs.numSamples;
+				MAX = rhs.MAX;
+				MIN = rhs.MIN;
 				samples = std::vector<T>(rhs.samples);
 				cout << "Copied Size: " << samples.size() << " samples" << endl;
 			}
@@ -109,6 +138,8 @@ namespace WHTMIC023 {
 				sampleRate = rhs.sampleRate;
 				bitCount = rhs.bitCount;
 				numSamples = rhs.numSamples;
+				MAX = rhs.MAX;
+				MIN = rhs.MIN;								
 				samples.swap(rhs.samples);
 			}
 
@@ -121,20 +152,33 @@ namespace WHTMIC023 {
 				AudioClip newClip = *this;
 
 				// add other clip's samples
-				auto iter2 = otherClip.begin();
-				for (auto iter1 = newClip.begin(); iter1 != newClip.end(); iter1++) {
-					int val = *iter1 + *iter2;
-					// should check if val > T's max size
+				for (int i = 0; i < numSamples; i++) {
+					int val = newClip.samples[i] + otherClip.samples[i];
 
-					*iter1 = val;
+					// clamp value
+					if (val > MAX) val = MAX;
+					if (val < MIN) val = MIN;
+
+					newClip.samples[i] = val;
 				}
 
 				return newClip;
 			}
 
-			AudioClip cut(float r1, float r2) {
+			AudioClip cut(int r1, int r2) {
+				AudioClip newClip;
+				newClip.sampleRate = sampleRate;
+				newClip.bitCount = bitCount;
+				newClip.numSamples = r2 - r1;
+				newClip.MAX = MAX;
+				newClip.MIN = MIN;
+				newClip.samples.resize(newClip.numSamples);
 
+				for (int i = 0; i < newClip.numSamples; i++) {
+					newClip.samples[i] = samples[r1 + i];
+				}
 
+				return newClip;
 			}
 
 			AudioClip rangeadd(AudioClip& otherClip, float r1, float r2, float s1, float s2) {
@@ -149,7 +193,7 @@ namespace WHTMIC023 {
 				// resize and concat other clip's samples
 				newClip.samples.resize(numSamples + otherClip.numSamples);
 
-				for (int i = numSamples; i < samples.size(); i++) {
+				for (int i = numSamples; i < newClip.samples.size(); i++) {
 					newClip.samples[i] = otherClip.samples[i - numSamples];
 				}
 
@@ -161,7 +205,26 @@ namespace WHTMIC023 {
 			}
 
 			AudioClip volume(float v1, float v2) {
+				cout << "Performing volume adjustment operation..." << endl;
+				cout << "Mono volume factor: " << v1 << endl;
 
+				// copy this clip
+				AudioClip newClip = *this;				
+				
+				// multiply each sample by volume factor
+				for (T& sample: newClip.samples) {
+					int val = sample;
+					val *= v1;
+
+					// clamp value
+					if (val > MAX) val = MAX;
+					if (val < MIN) val = MIN;
+
+					sample = val;
+				}
+
+				cout << "Done!" << endl << endl;
+				return newClip;
 			}
 
 			AudioClip reverse(void) {
@@ -217,7 +280,6 @@ namespace WHTMIC023 {
 	};
 
 
-
 	// AudioClip specialized for stereo
 	template <typename T> 
 	class AudioClip < std::pair<T,T> > {
@@ -250,8 +312,20 @@ namespace WHTMIC023 {
 
 				T left, right;
 				for (int i = 0; i < numSamples; i++) {
-					in >> left;
-					in >> right;
+					if (bitCount == 8) {
+						in >> left;
+						in >> right;
+					}
+					else {
+						uint8_t x, y;
+						in.read(reinterpret_cast<char*>(&x), sizeof(x));
+						in.read(reinterpret_cast<char*>(&y), sizeof(y));
+						left = (int8_t) x | ((int8_t) y << 8);
+
+						in.read(reinterpret_cast<char*>(&x), sizeof(x));
+						in.read(reinterpret_cast<char*>(&y), sizeof(y));
+						right = (int8_t) x | ((int8_t) y << 8);
+					}
 					samples[i] = std::pair<T,T>(left, right);
 				}
 
@@ -313,7 +387,37 @@ namespace WHTMIC023 {
 			// ***
 
 			AudioClip add(AudioClip& otherClip) {
+				// copy this clip
+				AudioClip newClip = *this;
 
+				// get clamping values
+				int max, min;
+				if (bitCount == 8) {
+					max = INT8_MAX;
+					min = INT8_MIN;
+				}
+				else {
+					max = INT16_MAX;
+					min = INT16_MIN;
+				}
+
+				// add other clip's samples
+				auto iter2 = otherClip.begin();
+				for (auto iter1 = newClip.begin(); iter1 != newClip.end(); iter1++) {
+					int leftVal = *iter1.first + *iter2.first;
+					int rightVal = *iter1.second + *iter2.second;
+
+					// clamp values
+					if (leftVal > max) leftVal = max;
+					if (leftVal < min) leftVal = min;
+
+					if (rightVal > max) rightVal = max;
+					if (rightVal < min) rightVal = min;
+
+					*iter1 = std::pair<T,T>(leftVal, rightVal);
+				}
+
+				return newClip;
 			}
 
 			AudioClip cut(float r1, float r2) {
