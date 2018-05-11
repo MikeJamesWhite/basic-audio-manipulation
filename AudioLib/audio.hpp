@@ -91,50 +91,52 @@ namespace WHTMIC023 {
 
 			// copy constructor
 			AudioClip(AudioClip& otherClip) {
-				cout << "Copying audio clip." << endl;
+				// release current resources
 				samples.clear();
 
+				// copy resources from otherClip
 				sampleRate = otherClip.sampleRate;
 				bitCount = otherClip.bitCount;
 				numSamples = otherClip.numSamples;
 				MAX = otherClip.MAX;
 				MIN = otherClip.MIN;
 				samples = std::vector<T>(otherClip.samples);
-				cout << "Copied Size: " << samples.size() << " samples" << endl;
 			}
 
 			// move constructor
 			AudioClip(AudioClip&& otherClip) {
-				cout << "Moving audio clip." << endl << endl;
+				// release current resources
 				samples.clear();
 
+				// move resources from otherClip
 				sampleRate = otherClip.sampleRate;
 				bitCount = otherClip.bitCount;
 				numSamples = otherClip.numSamples;
 				MAX = otherClip.MAX;
 				MIN = otherClip.MIN;
-				samples.swap(otherClip.samples);				
+				samples.swap(otherClip.samples);
 			}
 
 			// copy assignment
 			AudioClip& operator=(AudioClip& rhs) {
-				cout << "Copying audio clip." << endl << endl;
+				// release current resources
 				samples.clear();
 
+				// copy resources from otherClip
 				sampleRate = rhs.sampleRate;
 				bitCount = rhs.bitCount;
 				numSamples = rhs.numSamples;
 				MAX = rhs.MAX;
 				MIN = rhs.MIN;
 				samples = std::vector<T>(rhs.samples);
-				cout << "Copied Size: " << samples.size() << " samples" << endl;
 			}
 
 			// move assignment
 			AudioClip& operator=(AudioClip&& rhs) {
-				cout << "Moving audio clip." << endl << endl;
+				// release current resources
 				samples.clear();
-
+				
+				// move resources from otherClip
 				sampleRate = rhs.sampleRate;
 				bitCount = rhs.bitCount;
 				numSamples = rhs.numSamples;
@@ -148,6 +150,8 @@ namespace WHTMIC023 {
 			// ***
 
 			AudioClip add(AudioClip& otherClip) {
+				cout << "Performing add operation..." << endl;
+
 				// copy this clip
 				AudioClip newClip = *this;
 
@@ -162,10 +166,15 @@ namespace WHTMIC023 {
 					newClip.samples[i] = val;
 				}
 
+				cout << "Done!" << endl << endl;
 				return newClip;
 			}
 
 			AudioClip cut(int r1, int r2) {
+				cout << "Performing cut operation..." << endl;
+				cout << "Cutting between samples " << r1 << " and " << r2 << endl;
+
+				// create new AudioClip container
 				AudioClip newClip;
 				newClip.sampleRate = sampleRate;
 				newClip.bitCount = bitCount;
@@ -174,15 +183,13 @@ namespace WHTMIC023 {
 				newClip.MIN = MIN;
 				newClip.samples.resize(newClip.numSamples);
 
+				// copy samples over range
 				for (int i = 0; i < newClip.numSamples; i++) {
 					newClip.samples[i] = samples[r1 + i];
 				}
 
+				cout << "Done!" << endl << endl;
 				return newClip;
-			}
-
-			AudioClip rangeadd(AudioClip& otherClip, float r1, float r2, float s1, float s2) {
-
 			}
 
 			AudioClip concatenate(AudioClip& otherClip) {
@@ -239,20 +246,47 @@ namespace WHTMIC023 {
 				return newClip;
 			}
 
-			AudioClip rms(void) {
+			AudioClip rangeadd(AudioClip& otherClip, float r1, float r2, float s1, float s2) {
+				cout << "Performing ranged add operation..." << endl;
+				
+				// check ranges are valid
+				if (std::abs((r2 - r1) - (s2 - s1)) > 0.0001f) {
+					throw "ERROR: Ranges are not equal!";
+				}
+
+				// calculate sample range
+				int start1 = (int) (r1 * sampleRate);
+				int end1 = (int) (r2 * sampleRate);
+				int start2 = (int) (s1 * sampleRate);
+				int end2 = (int) (s2 * sampleRate);
+				int sampleRange = end1 - start1;
+				cout << "Adding over range of " << sampleRange << " samples" << endl << endl;
+
+				// add over range (using std::copy and + operator)
+				AudioClip first = *this ^ std::pair<int, int> (start1, end1);
+				AudioClip second = otherClip ^ std::pair<int, int> (start2, end2);
+
+				return  first + second;
+			}
+
+			float rms(void) {
+				// calculate rms using std::accumulate and custom lambda
 
 			}
 
-			AudioClip normalize(void) {
+			AudioClip normalize(float r1, float r2) {
+				// normalize using std::transform with custom functor
 
 			}
 
-			AudioClip fadein(float r1, float r2) {
+			AudioClip fadein(float n) {
+				// use custom lambda with linear ramp
 
 			}
 
-			AudioClip fadeout(float r1, float r2) {
-
+			AudioClip fadeout(float n) {
+				// use custom lambda with linear ramp
+				
 			}
 
 			void write(std::string outfile) {
@@ -277,6 +311,26 @@ namespace WHTMIC023 {
 			typename std::vector<T>::iterator end() {
 				return samples.end();
 			}
+
+			// ***
+			// ADDITIONAL OPERATOR OVERLOADS
+			// ***
+
+			AudioClip operator|(AudioClip& rhs) {
+				return concatenate(rhs);
+			}
+
+			AudioClip operator+(AudioClip& rhs) {
+				return add(rhs);
+			}
+
+			AudioClip operator*(std::pair<float, float> rhs) {
+				return volume(rhs.first, rhs.second);
+			}
+
+			AudioClip operator^(std::pair<int, int> rhs) {
+				return cut(rhs.first, rhs.second);
+			}
 	};
 
 
@@ -284,7 +338,7 @@ namespace WHTMIC023 {
 	template <typename T> 
 	class AudioClip < std::pair<T,T> > {
 		private:
-			int sampleRate, bitCount, numSamples;
+			int sampleRate, bitCount, numSamples, MAX, MIN;
 			std::vector < std::pair<T,T> > samples;
 
 		public:
@@ -297,6 +351,16 @@ namespace WHTMIC023 {
 				cout << "Loading in new Audio Clip..." << endl;
 				cout << "Opening: " << filename << endl;
 				std::ifstream in = std::ifstream(filename, std::ios::binary);
+
+				// set max and min for clamping
+				if (bitCount == 8) {
+					MAX = INT8_MAX;
+					MIN = INT8_MIN;
+				}
+				else {
+					MAX = INT16_MAX;
+					MIN = INT16_MIN;
+				}
 
 				// calculate filesize
 				int fileSize;
@@ -343,6 +407,8 @@ namespace WHTMIC023 {
 				sampleRate = otherClip.sampleRate;
 				bitCount = otherClip.bitCount;
 				numSamples = otherClip.numSamples;
+				MAX = otherClip.MAX;
+				MIN = otherClip.MIN;
 				samples = std::vector<std::pair<T,T>>(otherClip.samples);
 				cout << "Copied Size: " << samples.size() << " samples" << endl;
 			}
@@ -355,6 +421,8 @@ namespace WHTMIC023 {
 				sampleRate = otherClip.sampleRate;
 				bitCount = otherClip.bitCount;
 				numSamples = otherClip.numSamples;
+				MAX = otherClip.MAX;
+				MIN = otherClip.MIN;
 				samples.swap(otherClip.samples);				
 			}
 
@@ -366,6 +434,8 @@ namespace WHTMIC023 {
 				sampleRate = rhs.sampleRate;
 				bitCount = rhs.bitCount;
 				numSamples = rhs.numSamples;
+				MAX = rhs.MAX;
+				MIN = rhs.MIN;
 				samples = std::vector<std::pair<T,T>>(rhs.samples);
 				cout << "Copied Size: " << samples.size() << " samples" << endl;
 			}
@@ -378,9 +448,10 @@ namespace WHTMIC023 {
 				sampleRate = rhs.sampleRate;
 				bitCount = rhs.bitCount;
 				numSamples = rhs.numSamples;
+				MAX = rhs.MAX;
+				MIN = rhs.MIN;
 				samples.swap(rhs.samples);
 			}
-			
 
 			// ***
 			// OTHER FUNCTIONS
@@ -390,29 +461,18 @@ namespace WHTMIC023 {
 				// copy this clip
 				AudioClip newClip = *this;
 
-				// get clamping values
-				int max, min;
-				if (bitCount == 8) {
-					max = INT8_MAX;
-					min = INT8_MIN;
-				}
-				else {
-					max = INT16_MAX;
-					min = INT16_MIN;
-				}
-
 				// add other clip's samples
 				auto iter2 = otherClip.begin();
 				for (auto iter1 = newClip.begin(); iter1 != newClip.end(); iter1++) {
-					int leftVal = *iter1.first + *iter2.first;
-					int rightVal = *iter1.second + *iter2.second;
+					int leftVal = (*iter1).first + (*iter2).first;
+					int rightVal = (*iter1).second + (*iter2).second;
 
 					// clamp values
-					if (leftVal > max) leftVal = max;
-					if (leftVal < min) leftVal = min;
+					if (leftVal > MAX) leftVal = MAX;
+					if (leftVal < MIN) leftVal = MIN;
 
-					if (rightVal > max) rightVal = max;
-					if (rightVal < min) rightVal = min;
+					if (rightVal > MAX) rightVal = MAX;
+					if (rightVal < MIN) rightVal = MIN;
 
 					*iter1 = std::pair<T,T>(leftVal, rightVal);
 				}
@@ -420,7 +480,7 @@ namespace WHTMIC023 {
 				return newClip;
 			}
 
-			AudioClip cut(float r1, float r2) {
+			AudioClip cut(int r1, int r2) {
 
 			}
 
@@ -449,7 +509,7 @@ namespace WHTMIC023 {
 				return newClip;
 			}
 
-			AudioClip rms(void) {
+			float rms(void) {
 
 			}
 
@@ -490,6 +550,26 @@ namespace WHTMIC023 {
 
 			typename std::vector< std::pair<T,T> >::iterator end() {
 				return samples.end();
+			}
+
+			// ***
+			// ADDITIONAL OPERATOR OVERLOADS
+			// ***
+
+			AudioClip operator|(AudioClip& rhs) {
+				return concatenate(rhs);
+			}
+
+			AudioClip operator+(AudioClip& rhs) {
+				return add(rhs);
+			}
+
+			AudioClip operator*(std::pair<float, float> rhs) {
+				return volume(rhs.first, rhs.second);
+			}
+
+			AudioClip operator^(std::pair<int, int> rhs) {
+				return cut(rhs.first, rhs.second);
 			}
 	};
 

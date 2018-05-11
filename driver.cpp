@@ -11,7 +11,6 @@ using namespace WHTMIC023;
 using namespace std;
 
 void getParams(int numParams, vector<float>& params, char * argv [], int & currentArg, int & argc, string & inFile, string& inFile2) {
-	
 	// get additional parameters
 	for (int i = 0; i < numParams; i++) {
 		float f;
@@ -84,7 +83,18 @@ int main(int argc, char* argv []) {
 			}
 		}
 		else {
-
+			if (bitCount == 8) {
+				AudioClip< pair<int8_t, int8_t> > inputAudio = AudioClip< pair<int8_t, int8_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int8_t, int8_t> > inputAudio2 = AudioClip< pair<int8_t, int8_t> >(inFile2, rate, bitCount);
+				AudioClip< pair<int8_t, int8_t> > result = inputAudio.add(inputAudio2);
+				result.write(outFile);	
+			}
+			else {
+				AudioClip< pair<int16_t, int16_t> > inputAudio = AudioClip< pair<int16_t, int16_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int16_t, int16_t> > inputAudio2 = AudioClip< pair<int16_t, int16_t> >(inFile2, rate, bitCount);
+				AudioClip< pair<int16_t, int16_t> > result = inputAudio.add(inputAudio2);
+				result.write(outFile);
+			}		
 		}
 	}
 
@@ -103,18 +113,16 @@ int main(int argc, char* argv []) {
 			}
 		}
 		else {
-			
-		}
-	}
-
-	else if ( op == "-radd" ) {
-		getParams(2, params, argv, currentArg, argc, inFile, inFile2);
-		if (numChannels == 1) {
-
-
-		}
-		else {
-			
+			if (bitCount == 8) {
+				AudioClip< pair<int8_t, int8_t> > inputAudio = AudioClip< pair<int8_t, int8_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int8_t, int8_t> > cut = inputAudio.cut((int) params[0], (int) params[1]);
+				cut.write(outFile);	
+			}
+			else {
+				AudioClip< pair<int16_t, int16_t> > inputAudio = AudioClip< pair<int16_t, int16_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int16_t, int16_t> > cut = inputAudio.cut((int) params[0], (int) params[1]);
+				cut.write(outFile);	
+			}					
 		}
 	}
 
@@ -124,18 +132,29 @@ int main(int argc, char* argv []) {
 			if (bitCount == 8) {
 				AudioClip<int8_t> inputAudio = AudioClip<int8_t> (inFile, rate, bitCount);
 				AudioClip<int8_t> inputAudio2 = AudioClip<int8_t> (inFile2, rate, bitCount);
-				AudioClip<int8_t> added = inputAudio.concatenate(inputAudio2);
-				added.write(outFile);
+				AudioClip<int8_t> result = inputAudio.concatenate(inputAudio2);
+				result.write(outFile);
 			}
 			else {
 				AudioClip<int16_t> inputAudio = AudioClip<int16_t> (inFile, rate, bitCount);
 				AudioClip<int16_t> inputAudio2 = AudioClip<int16_t> (inFile2, rate, bitCount);
-				AudioClip<int16_t> added = inputAudio.concatenate(inputAudio2);
-				added.write(outFile);
+				AudioClip<int16_t> result = inputAudio.concatenate(inputAudio2);
+				result.write(outFile);
 			}
 		}
 		else {
-			
+			if (bitCount == 8) {
+				AudioClip< pair<int8_t, int8_t> > inputAudio = AudioClip< pair<int8_t, int8_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int8_t, int8_t> > inputAudio2 = AudioClip< pair<int8_t, int8_t> >(inFile2, rate, bitCount);
+				AudioClip< pair<int8_t, int8_t> > result = inputAudio.concatenate(inputAudio2);
+				result.write(outFile);	
+			}
+			else {
+				AudioClip< pair<int16_t, int16_t> > inputAudio = AudioClip< pair<int16_t, int16_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int16_t, int16_t> > inputAudio2 = AudioClip< pair<int16_t, int16_t> >(inFile2, rate, bitCount);
+				AudioClip< pair<int16_t, int16_t> > result = inputAudio.concatenate(inputAudio2);
+				result.write(outFile);
+			}			
 		}	
 	}
 
@@ -154,7 +173,16 @@ int main(int argc, char* argv []) {
 			}
 		}
 		else {
-			
+			if (bitCount == 8) {
+				AudioClip< pair<int8_t, int8_t> > inputAudio = AudioClip< pair<int8_t, int8_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int8_t, int8_t> > quieter = inputAudio.volume(params[0], params[1]);
+				quieter.write(outFile);	
+			}
+			else {
+				AudioClip< pair<int16_t, int16_t> > inputAudio = AudioClip< pair<int16_t, int16_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int16_t, int16_t> > quieter = inputAudio.volume(params[0], params[1]);
+				quieter.write(outFile);	
+			}				
 		}	
 	}
 
@@ -186,10 +214,41 @@ int main(int argc, char* argv []) {
 		}
 	}
 
+	else if ( op == "-radd" ) {
+		getParams(4, params, argv, currentArg, argc, inFile, inFile2);
+		if (numChannels == 1) {
+			if (bitCount == 8) {
+				AudioClip<int8_t> inputAudio = AudioClip<int8_t> (inFile, rate, bitCount);
+				AudioClip<int8_t> inputAudio2 = AudioClip<int8_t> (inFile2, rate, bitCount);
+				AudioClip<int8_t> result = inputAudio.rangeadd(inputAudio2, params[0], params[1], params[2], params[3]);
+				result.write(outFile);
+			}
+			else {
+				AudioClip<int16_t> inputAudio = AudioClip<int16_t> (inFile, rate, bitCount);
+				AudioClip<int16_t> inputAudio2 = AudioClip<int16_t> (inFile2, rate, bitCount);
+				AudioClip<int16_t> result = inputAudio.rangeadd(inputAudio2, params[0], params[1], params[2], params[3]);
+				result.write(outFile);
+			}
+		}
+		else {
+			if (bitCount == 8) {
+				AudioClip< pair<int8_t, int8_t> > inputAudio = AudioClip< pair<int8_t, int8_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int8_t, int8_t> > inputAudio2 = AudioClip< pair<int8_t, int8_t> >(inFile2, rate, bitCount);
+				AudioClip< pair<int8_t, int8_t> > result = inputAudio.rangeadd(inputAudio2, params[0], params[1], params[2], params[3]);
+				result.write(outFile);	
+			}
+			else {
+				AudioClip< pair<int16_t, int16_t> > inputAudio = AudioClip< pair<int16_t, int16_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int16_t, int16_t> > inputAudio2 = AudioClip< pair<int16_t, int16_t> >(inFile2, rate, bitCount);
+				AudioClip< pair<int16_t, int16_t> > result = inputAudio.rangeadd(inputAudio2, params[0], params[1], params[2], params[3]);
+				result.write(outFile);
+			}			
+		}	
+	}
+
 	else if ( op == "-rms" ) {
 		getParams(0, params, argv, currentArg, argc, inFile, inFile2);
 		if (numChannels == 1) {
-
 
 		}
 		else {
@@ -209,7 +268,7 @@ int main(int argc, char* argv []) {
 	}
 
 	else if ( op == "-fadein" ) {
-		getParams(2, params, argv, currentArg, argc, inFile, inFile2);
+		getParams(1, params, argv, currentArg, argc, inFile, inFile2);
 		if (numChannels == 1) {
 
 
@@ -220,7 +279,7 @@ int main(int argc, char* argv []) {
 	}
 
 	else if ( op == "-fadeout" ) {
-		getParams(2, params, argv, currentArg, argc, inFile, inFile2);
+		getParams(1, params, argv, currentArg, argc, inFile, inFile2);
 		if (numChannels == 1) {
 
 

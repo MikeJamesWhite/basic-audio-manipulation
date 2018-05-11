@@ -29,15 +29,15 @@ clean:
 
 add: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 44100 -b 8 -c 1 -o test -add $(SOUNDFILEDIR)/frogs18sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/frogs18sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw
+	./samp -r 44100 -b 8 -c 2 -o test -add $(SOUNDFILEDIR)/frogs18sec_44100_signed_8bit_stereo.raw $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_stereo.raw
 
 cut: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 44100 -b 8 -c 1 -o test -cut 0 200000 $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/frogs18sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw
+	./samp -r 44100 -b 16 -c 1 -o test -cut 0 200000 $(SOUNDFILEDIR)/countdown40sec_44100_signed_16bit_mono.raw
 
 rangeadd: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 44100 -b 8 -c 1 -o test -radd range1 range2 range3 range4 inputFile inputFile2
+	./samp -r 44100 -b 8 -c 1 -o test -radd 3 5 14 16 $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw
 
 concatenate: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
@@ -45,7 +45,7 @@ concatenate: $(TARGET)
 
 volume: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 44100 -b 8 -c 1 -o test -v 0.5 0.5 $(SOUNDFILEDIR)/frogs18sec_44100_signed_8bit_mono.raw $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw
+	./samp -r 44100 -b 8 -c 1 -o test -v 0.1 0.1 $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw
 
 reverse: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
