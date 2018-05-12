@@ -249,44 +249,115 @@ int main(int argc, char* argv []) {
 	else if ( op == "-rms" ) {
 		getParams(0, params, argv, currentArg, argc, inFile, inFile2);
 		if (numChannels == 1) {
-
+			if (bitCount == 8) {
+				AudioClip<int8_t> inputAudio = AudioClip<int8_t> (inFile, rate, bitCount);
+				float result = inputAudio.rms();
+				cout << "RMS: " << result;
+			}
+			else {
+				AudioClip<int16_t> inputAudio = AudioClip<int16_t> (inFile, rate, bitCount);
+				float result = inputAudio.rms();
+				cout << "RMS: " << result;
+			}
 		}
 		else {
-			
+			if (bitCount == 8) {
+				AudioClip< pair<int8_t, int8_t> > inputAudio = AudioClip< pair<int8_t, int8_t> >(inFile, rate, bitCount);
+				std::pair<float, float> result = inputAudio.rms();
+				cout << "RMS left: " << result.first;
+				cout << "RMS right: " << result.second;
+			}
+			else {
+				AudioClip< pair<int16_t, int16_t> > inputAudio = AudioClip< pair<int16_t, int16_t> >(inFile, rate, bitCount);
+				std::pair<float, float> result = inputAudio.rms();
+				cout << "RMS left: " << result.first;
+				cout << "RMS right: " << result.second;
+			}				
 		}	
 	}
 
 	else if ( op == "-norm" ) {
 		getParams(2, params, argv, currentArg, argc, inFile, inFile2);
 		if (numChannels == 1) {
-
-
+			if (bitCount == 8) {
+				AudioClip<int8_t> inputAudio = AudioClip<int8_t> (inFile, rate, bitCount);
+				AudioClip<int8_t> result = inputAudio.normalize(params[0], params[1]);
+				result.write(outFile);
+			}
+			else {
+				AudioClip<int16_t> inputAudio = AudioClip<int16_t> (inFile, rate, bitCount);
+				AudioClip<int16_t> result = inputAudio.normalize(params[0], params[1]);
+				result.write(outFile);
+			}
 		}
 		else {
-			
-		}	
+			if (bitCount == 8) {
+				AudioClip< pair<int8_t, int8_t> > inputAudio = AudioClip< pair<int8_t, int8_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int8_t, int8_t> > result = inputAudio.normalize(params[0], params[1]);
+				result.write(outFile);	
+			}
+			else {
+				AudioClip< pair<int16_t, int16_t> > inputAudio = AudioClip< pair<int16_t, int16_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int16_t, int16_t> > result = inputAudio.normalize(params[0], params[1]);
+				result.write(outFile);	
+			}		
+		}
 	}
 
 	else if ( op == "-fadein" ) {
 		getParams(1, params, argv, currentArg, argc, inFile, inFile2);
 		if (numChannels == 1) {
-
-
+			if (bitCount == 8) {
+				AudioClip<int8_t> inputAudio = AudioClip<int8_t> (inFile, rate, bitCount);
+				AudioClip<int8_t> result = inputAudio.fadein(params[0]);
+				result.write(outFile);
+			}
+			else {
+				AudioClip<int16_t> inputAudio = AudioClip<int16_t> (inFile, rate, bitCount);
+				AudioClip<int16_t> result = inputAudio.fadein(params[0]);
+				result.write(outFile);
+			}
 		}
 		else {
-			
-		}	
+			if (bitCount == 8) {
+				AudioClip< pair<int8_t, int8_t> > inputAudio = AudioClip< pair<int8_t, int8_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int8_t, int8_t> > result = inputAudio.fadein(params[0]);
+				result.write(outFile);	
+			}
+			else {
+				AudioClip< pair<int16_t, int16_t> > inputAudio = AudioClip< pair<int16_t, int16_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int16_t, int16_t> > result = inputAudio.fadein(params[0]);
+				result.write(outFile);	
+			}		
+		}
 	}
 
 	else if ( op == "-fadeout" ) {
 		getParams(1, params, argv, currentArg, argc, inFile, inFile2);
 		if (numChannels == 1) {
-
-
+			if (bitCount == 8) {
+				AudioClip<int8_t> inputAudio = AudioClip<int8_t> (inFile, rate, bitCount);
+				AudioClip<int8_t> result = inputAudio.fadeout(params[0]);
+				result.write(outFile);
+			}
+			else {
+				AudioClip<int16_t> inputAudio = AudioClip<int16_t> (inFile, rate, bitCount);
+				AudioClip<int16_t> result = inputAudio.fadeout(params[0]);
+				result.write(outFile);
+			}
 		}
 		else {
-			
-		}	
+			if (bitCount == 8) {
+				AudioClip< pair<int8_t, int8_t> > inputAudio = AudioClip< pair<int8_t, int8_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int8_t, int8_t> > result = inputAudio.fadeout(params[0]);
+				result.write(outFile);	
+			}
+			else {
+				AudioClip< pair<int16_t, int16_t> > inputAudio = AudioClip< pair<int16_t, int16_t> >(inFile, rate, bitCount);
+				AudioClip< pair<int16_t, int16_t> > result = inputAudio.fadeout(params[0]);
+				result.write(outFile);	
+			}		
+		}
 	}
 
 	else {
