@@ -16,6 +16,9 @@
 #include <sstream>
 #include <algorithm>
 #include <cstdint>
+#include <cstdlib>
+#include <math.h>
+#include <numeric>
 
 using std::string;
 using std::to_string;
@@ -250,7 +253,7 @@ namespace WHTMIC023 {
 				cout << "Performing ranged add operation..." << endl;
 				
 				// check ranges are valid
-				if (std::abs((r2 - r1) - (s2 - s1)) > 0.0001f) {
+				if (fabs( (r2 - r1) - (s2 - s1)) > 0.0001f) {
 					throw "ERROR: Ranges are not equal!";
 				}
 
@@ -271,12 +274,16 @@ namespace WHTMIC023 {
 
 			float rms(void) {
 				// calculate rms using std::accumulate and custom lambda
-
+				float ms = std::accumulate(begin(), end(), *(begin()) * *(begin()), 
+					[](T a, T b) {  
+            			return a + (b*b);  
+        			});
+				return sqrt(ms / numSamples);
 			}
 
 			AudioClip normalize(float r1, float r2) {
 				// normalize using std::transform with custom functor
-
+				// calculate current RMS, calculate factor of difference with desired RMS & apply factor
 			}
 
 			AudioClip fadein(float n) {
@@ -346,6 +353,9 @@ namespace WHTMIC023 {
 			// SPECIAL MEMBER FUNCTIONS
 			// ***
 
+			// default constructor
+			AudioClip() {}
+
 			// constructor
 			AudioClip(std::string filename, int sampleRate, int bitCount) : sampleRate(sampleRate), bitCount(bitCount) {
 				cout << "Loading in new Audio Clip..." << endl;
@@ -397,7 +407,7 @@ namespace WHTMIC023 {
 			}
 
 			// destructor
-			~AudioClip() {}
+			~AudioClip() { }
 
 			// copy constructor
 			AudioClip(AudioClip& otherClip) {
@@ -481,19 +491,73 @@ namespace WHTMIC023 {
 			}
 
 			AudioClip cut(int r1, int r2) {
+				cout << "Performing cut operation..." << endl;
+				cout << "Cutting between samples " << r1 << " and " << r2 << endl;
 
-			}
+				// create new AudioClip container
+				AudioClip newClip;
+				newClip.sampleRate = sampleRate;
+				newClip.bitCount = bitCount;
+				newClip.numSamples = r2 - r1;
+				newClip.MAX = MAX;
+				newClip.MIN = MIN;
+				newClip.samples.resize(newClip.numSamples);
 
-			AudioClip rangeadd(AudioClip& otherClip, float r1, float r2, float s1, float s2) {
+				// copy samples over range
+				for (int i = 0; i < newClip.numSamples; i++) {
+					newClip.samples[i] = std::pair<T,T>(samples[r1 + i].first, samples[r1 + i].second);
+				}
 
+				cout << "Done!" << endl << endl;
+				return newClip;
 			}
 
 			AudioClip concatenate(AudioClip& otherClip) {
+				cout << "Performing concatenate operation..." << endl;
+				// copy this clip
+				AudioClip newClip = *this;
 
+				// resize and concat other clip's samples
+				newClip.samples.resize(numSamples + otherClip.numSamples);
+
+				for (int i = numSamples; i < newClip.samples.size(); i++) {
+					newClip.samples[i] = std::pair<T,T>(otherClip.samples[i - numSamples]);
+				}
+
+				newClip.numSamples += otherClip.numSamples;
+				cout << "New size: " << newClip.numSamples << " samples" << endl;
+
+				cout << "Done!" << endl << endl;
+				return newClip;
 			}
 
 			AudioClip volume(float v1, float v2) {
+				cout << "Performing volume adjustment operation..." << endl;
+				cout << "Left volume factor: " << v1 << endl;
+				cout << "Right volume factor: " << v2 << endl;
 
+				// copy this clip
+				AudioClip newClip = *this;				
+				
+				// multiply each sample by volume factors
+				for (std::pair<T,T>& sample: newClip.samples) {
+					int leftVal = sample.first;
+					int rightVal = sample.second;
+					leftVal *= v1;
+					rightVal *= v2;
+
+					// clamp values
+					if (leftVal > MAX) leftVal = MAX;
+					if (leftVal < MIN) leftVal = MIN;
+
+					if (rightVal > MAX) rightVal = MAX;
+					if (rightVal < MIN) rightVal = MIN;
+
+					sample = std::pair<T,T>(leftVal, rightVal);
+				}
+
+				cout << "Done!" << endl << endl;
+				return newClip;
 			}
 
 			AudioClip reverse(void) {
@@ -509,19 +573,47 @@ namespace WHTMIC023 {
 				return newClip;
 			}
 
-			float rms(void) {
+			AudioClip rangeadd(AudioClip& otherClip, float r1, float r2, float s1, float s2) {
+				cout << "Performing ranged add operation..." << endl;
+				
+				// check ranges are valid
+				if (fabs( (r2 - r1) - (s2 - s1)) > 0.0001f) {
+					throw "ERROR: Ranges are not equal!";
+				}
+
+				// calculate sample range
+				int start1 = (int) (r1 * sampleRate);
+				int end1 = (int) (r2 * sampleRate);
+				int start2 = (int) (s1 * sampleRate);
+				int end2 = (int) (s2 * sampleRate);
+				int sampleRange = end1 - start1;
+				cout << "Adding over range of " << sampleRange << " samples" << endl << endl;
+
+				// add over range (using std::copy and + operator)
+				AudioClip first = *this ^ std::pair<int, int> (start1, end1);
+				AudioClip second = otherClip ^ std::pair<int, int> (start2, end2);
+
+				return  first + second;
+			}
+
+			std::pair<float, float> rms(void) {
+				// calculate rms per channel using std::accumulate and custom lambda
+				std::pair<float, float> ms = std::accumulate(begin(), end(), std::pair<float, float> (0,0), 
+					[](std::pair<T,T> a, std::pair<T, T> b) {  
+						return std::pair<float, float> (a.first + (b.first*b.first), a.second + (b.second*b.second));  
+        			});
+				return std::pair<float, float>(sqrt(ms.first / numSamples), sqrt(ms.second / numSamples));
+			}
+
+			AudioClip normalize(float r1, float r2) {
 
 			}
 
-			AudioClip normalize(void) {
+			AudioClip fadein(float n) {
 
 			}
 
-			AudioClip fadein(float r1, float r2) {
-
-			}
-
-			AudioClip fadeout(float r1, float r2) {
+			AudioClip fadeout(float n) {
 
 			}
 	
