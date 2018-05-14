@@ -252,26 +252,26 @@ int main(int argc, char* argv []) {
 			if (bitCount == 8) {
 				AudioClip<int8_t> inputAudio = AudioClip<int8_t> (inFile, rate, bitCount);
 				float result = inputAudio.rms();
-				cout << "RMS: " << result;
+				cout << "RMS: " << result << endl << endl;
 			}
 			else {
 				AudioClip<int16_t> inputAudio = AudioClip<int16_t> (inFile, rate, bitCount);
 				float result = inputAudio.rms();
-				cout << "RMS: " << result;
+				cout << "RMS: " << result << endl << endl;
 			}
 		}
 		else {
 			if (bitCount == 8) {
 				AudioClip< pair<int8_t, int8_t> > inputAudio = AudioClip< pair<int8_t, int8_t> >(inFile, rate, bitCount);
 				std::pair<float, float> result = inputAudio.rms();
-				cout << "RMS left: " << result.first;
-				cout << "RMS right: " << result.second;
+				cout << "RMS left: " << result.first << endl;
+				cout << "RMS right: " << result.second << endl << endl;
 			}
 			else {
 				AudioClip< pair<int16_t, int16_t> > inputAudio = AudioClip< pair<int16_t, int16_t> >(inFile, rate, bitCount);
 				std::pair<float, float> result = inputAudio.rms();
-				cout << "RMS left: " << result.first;
-				cout << "RMS right: " << result.second;
+				cout << "RMS left: " << result.first << endl;
+				cout << "RMS right: " << result.second << endl << endl;
 			}				
 		}	
 	}
