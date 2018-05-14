@@ -27,17 +27,24 @@ using std::endl;
 
 namespace WHTMIC023 {
 
-	// custom functor for normalizing audio clips
+	// custom functor for normalizing mono audio clips
 	template <typename T>
 	struct norm {
 		norm(float diffFactor) : diffFactor(diffFactor) {}
-		norm(float diffFactor, float diffFactor2) : diffFactor(diffFactor), diffFactor2(diffFactor2) {}
 
 		// standard (mono) normalize
 		T operator()(T sample) const { return (T) (diffFactor * sample); }
-		
+
+		private:
+			float diffFactor;
+	};
+
+	// custom functor for normalizing stereo audio clips
+	template <typename T>
+	struct norm < std::pair<T, T> > {
+		norm(float diffFactor, float diffFactor2) : diffFactor(diffFactor), diffFactor2(diffFactor2) {}
+
 		// specialized (stereo) normalize
-		template < std::pair<T, T> >
 		std::pair<T, T> operator()(std::pair<T, T> sample) const { return std::pair<T,T>(diffFactor * sample.first, diffFactor2 * sample.second); }
 
 		private:
@@ -710,7 +717,7 @@ namespace WHTMIC023 {
 
 			AudioClip fadeout(float n) {
 				cout << "Performing fadeout operation..." << endl;
-				
+
 				// use custom lambda with linear ramp
 				AudioClip newClip = *this;
 
