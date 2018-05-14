@@ -27,6 +27,23 @@ using std::endl;
 
 namespace WHTMIC023 {
 
+	// custom functor for normalizing audio clips
+	template <typename T>
+	struct norm {
+		norm(float diffFactor) : diffFactor(diffFactor) {}
+		norm(float diffFactor, float diffFactor2) : diffFactor(diffFactor), diffFactor2(diffFactor2) {}
+
+		// standard (mono) normalize
+		T operator()(T sample) const { return (T) (diffFactor * sample); }
+		
+		// specialized (stereo) normalize
+		template < std::pair<T, T> >
+		std::pair<T, T> operator()(std::pair<T, T> sample) const { return std::pair<T,T>(diffFactor * sample.first, diffFactor2 * sample.second); }
+
+		private:
+			float diffFactor, diffFactor2;
+	};
+
 	// Standard AudioClip for mono files
 	template <typename T>
 	class AudioClip {
@@ -273,27 +290,70 @@ namespace WHTMIC023 {
 			}
 
 			float rms(void) {
+				cout << "Calculating RMS..." << endl;
+
 				// calculate rms using std::accumulate and custom lambda
 				float ms = std::accumulate(begin(), end(), *(begin()) * *(begin()), 
 					[](T a, T b) {  
             			return a + (b*b);  
         			});
+
+				cout << "Done!" << endl << endl;
 				return sqrt(ms / numSamples);
 			}
 
 			AudioClip normalize(float r1, float r2) {
+				cout << "Performing normalize operation..." << endl;
+
 				// normalize using std::transform with custom functor
-				// calculate current RMS, calculate factor of difference with desired RMS & apply factor
+				AudioClip newClip = *this;
+
+				// calculate factor of difference with desired RMS
+				float diffFactor = r1 / rms();
+
+				// multiply each value by factor of difference
+				std::transform(begin(), end(), newClip.begin(), norm<T>(diffFactor));
+
+				cout << "Done!" << endl << endl;
+				return newClip;
 			}
 
 			AudioClip fadein(float n) {
-				// use custom lambda with linear ramp
+				cout << "Performing fadein operation..." << endl;
 
+				// use custom lambda with linear ramp
+				AudioClip newClip = *this;
+
+				int sampleRange = n * sampleRate;
+				int counter = 0;
+
+				std::for_each(newClip.begin(), newClip.begin() + sampleRange, 
+					[&counter, sampleRange](T &sample) {
+						sample *= (counter / (float) sampleRange);
+						counter++;
+					});
+
+				cout << "Done!" << endl << endl;
+				return newClip;
 			}
 
 			AudioClip fadeout(float n) {
+				cout << "Performing fadeout operation..." << endl;
+
 				// use custom lambda with linear ramp
-				
+				AudioClip newClip = *this;
+
+				int sampleRange = n * sampleRate;
+				int counter = 0;
+
+				std::for_each(newClip.end() - sampleRange, newClip.end(), 
+					[&counter, sampleRange](T &sample) {
+						sample *= 1.0f - (counter / (float) sampleRange);
+						counter++;
+					});
+
+				cout << "Done!" << endl << endl;
+				return newClip;
 			}
 
 			void write(std::string outfile) {
@@ -597,24 +657,76 @@ namespace WHTMIC023 {
 			}
 
 			std::pair<float, float> rms(void) {
+				cout << "Calculating RMS..." << endl;
+
 				// calculate rms per channel using std::accumulate and custom lambda
 				std::pair<float, float> ms = std::accumulate(begin(), end(), std::pair<float, float> (0,0), 
 					[](std::pair<T,T> a, std::pair<T, T> b) {  
 						return std::pair<float, float> (a.first + (b.first*b.first), a.second + (b.second*b.second));  
         			});
+
+				cout << "Done!" << endl << endl;
 				return std::pair<float, float>(sqrt(ms.first / numSamples), sqrt(ms.second / numSamples));
 			}
 
 			AudioClip normalize(float r1, float r2) {
+				cout << "Performing normalize operation..." << endl;
 
+				// normalize using std::transform with custom functor
+				AudioClip newClip = *this;
+
+				// calculate factor of difference with desired RMS per channel
+				std::pair<float, float> currentRMS = rms();
+				float leftDiff = r1 / currentRMS.first;
+				float rightDiff = r2 / currentRMS.second;
+
+				// multiply each value by corresponding factor of difference
+				std::transform(begin(), end(), newClip.begin(), norm<std::pair<T,T> >(leftDiff, rightDiff));
+
+				cout << "Done!" << endl << endl;
+				return newClip;
 			}
 
 			AudioClip fadein(float n) {
+				cout << "Performing fadein operation..." << endl;
 
+				// use custom lambda with linear ramp
+				AudioClip newClip = *this;
+
+				int sampleRange = n * sampleRate;
+				int counter = 0;
+
+				std::for_each(newClip.begin(), newClip.begin() + sampleRange, 
+					[&counter, sampleRange](std::pair<T,T> &sample) {
+						sample.first *= (counter / (float) sampleRange);
+						sample.second *= (counter / (float) sampleRange);
+
+						counter++;
+					});
+
+				cout << "Done!" << endl << endl;
+				return newClip;
 			}
 
 			AudioClip fadeout(float n) {
+				cout << "Performing fadeout operation..." << endl;
+				
+				// use custom lambda with linear ramp
+				AudioClip newClip = *this;
 
+				int sampleRange = n * sampleRate;
+				int counter = 0;
+
+				std::for_each(newClip.end() - sampleRange, newClip.end(), 
+					[&counter, sampleRange](std::pair<T,T> &sample) {
+						sample.first *= 1.0f - (counter / (float) sampleRange);
+						sample.second *= 1.0f - (counter / (float) sampleRange);
+				
+						counter++;
+					});
+
+				cout << "Done!" << endl << endl;
+				return newClip;
 			}
 	
 			void write(std::string outfile) {
