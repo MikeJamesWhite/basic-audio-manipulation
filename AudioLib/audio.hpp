@@ -45,7 +45,13 @@ namespace WHTMIC023 {
 		norm(float diffFactor, float diffFactor2) : diffFactor(diffFactor), diffFactor2(diffFactor2) {}
 
 		// specialized (stereo) normalize
-		std::pair<T, T> operator()(std::pair<T, T> sample) const { return std::pair<T,T>(diffFactor * sample.first, diffFactor2 * sample.second); }
+		std::pair<T, T> operator()(std::pair<T, T> sample) const { 
+			T firstVal, secondVal;
+			firstVal = (T) (diffFactor * sample.first);
+			secondVal = (T) (diffFactor2 * sample.second);
+
+			return std::pair<T,T>(firstVal, secondVal); 
+		}
 
 		private:
 			float diffFactor, diffFactor2;
@@ -199,20 +205,24 @@ namespace WHTMIC023 {
 
 			AudioClip cut(int r1, int r2) {
 				cout << "Performing cut operation..." << endl;
-				cout << "Cutting between samples " << r1 << " and " << r2 << endl;
+				cout << "Cutting away samples between " << r1 << " and " << r2 << endl;
 
 				// create new AudioClip container
 				AudioClip newClip;
 				newClip.sampleRate = sampleRate;
 				newClip.bitCount = bitCount;
-				newClip.numSamples = r2 - r1;
+				newClip.numSamples = numSamples - (r2 - r1);
 				newClip.MAX = MAX;
 				newClip.MIN = MIN;
 				newClip.samples.resize(newClip.numSamples);
 
-				// copy samples over range
-				for (int i = 0; i < newClip.numSamples; i++) {
-					newClip.samples[i] = samples[r1 + i];
+				// copy samples with range removed
+				int count = 0;
+				for (int i = 0; i < numSamples; i++) {
+					if (!(i >= r1 && i <= r2)) {
+						newClip.samples[count] = samples[i];
+						count++;
+					}
 				}
 
 				cout << "Done!" << endl << endl;
@@ -297,16 +307,26 @@ namespace WHTMIC023 {
 			}
 
 			float rms(void) {
-				cout << "Calculating RMS..." << endl;
-
+				cout << "Calculating mono RMS..." << endl;
 				// calculate rms using std::accumulate and custom lambda
+
+				int n = numSamples;
+				int bits = bitCount;
+
 				float ms = std::accumulate(begin(), end(), 0, 
-					[] (T a, T b) {  
-            			return a + (b*b);  
+					[n, bits](float sum, T element) {
+						int tmp = (element * element);
+						if (bits == 16)
+            				return sum + (tmp / (float) n );
+						else
+							return sum + tmp;
         			});
 
+				if (bits == 8)
+					ms = ms/n;
+
 				cout << "Done!" << endl << endl;
-				return sqrt(ms / numSamples);
+				return std::sqrt(ms);
 			}
 
 			AudioClip normalize(float r1, float r2) {
@@ -559,20 +579,24 @@ namespace WHTMIC023 {
 
 			AudioClip cut(int r1, int r2) {
 				cout << "Performing cut operation..." << endl;
-				cout << "Cutting between samples " << r1 << " and " << r2 << endl;
+				cout << "Cutting away samples between " << r1 << " and " << r2 << endl;
 
 				// create new AudioClip container
 				AudioClip newClip;
 				newClip.sampleRate = sampleRate;
 				newClip.bitCount = bitCount;
-				newClip.numSamples = r2 - r1;
+				newClip.numSamples = numSamples - (r2 - r1);
 				newClip.MAX = MAX;
 				newClip.MIN = MIN;
 				newClip.samples.resize(newClip.numSamples);
 
-				// copy samples over range
-				for (int i = 0; i < newClip.numSamples; i++) {
-					newClip.samples[i] = std::pair<T,T>(samples[r1 + i].first, samples[r1 + i].second);
+				// copy samples with range removed
+				int count = 0;
+				for (int i = 0; i < numSamples; i++) {
+					if (!(i >= r1 && i <= r2)) {
+						newClip.samples[count] = std::pair<T,T>(samples[i].first, samples[i].second);
+						count++;
+					}
 				}
 
 				cout << "Done!" << endl << endl;
@@ -666,14 +690,16 @@ namespace WHTMIC023 {
 			std::pair<float, float> rms(void) {
 				cout << "Calculating RMS..." << endl;
 
+				int n = numSamples;
+
 				// calculate rms per channel using std::accumulate and custom lambda
 				std::pair<float, float> ms = std::accumulate(begin(), end(), std::pair<float, float> (0,0), 
-					[](std::pair<T,T> a, std::pair<T, T> b) {  
-						return std::pair<float, float> (a.first + (b.first*b.first), a.second + (b.second*b.second));  
+					[n](std::pair<float, float> sum, std::pair<T, T> element) {  
+						return std::pair<float, float> (sum.first + (element.first*element.first) / (float) n , sum.second + (element.second*element.second) / (float) n);  
         			});
 
 				cout << "Done!" << endl << endl;
-				return std::pair<float, float>(sqrt(ms.first / numSamples), sqrt(ms.second / numSamples));
+				return std::pair<float, float>(sqrt(ms.first), sqrt(ms.second));
 			}
 
 			AudioClip normalize(float r1, float r2) {
@@ -697,12 +723,13 @@ namespace WHTMIC023 {
 			AudioClip fadein(float n) {
 				cout << "Performing fadein operation..." << endl;
 
-				// use custom lambda with linear ramp
+				// copy this
 				AudioClip newClip = *this;
 
 				int sampleRange = n * sampleRate;
 				int counter = 0;
 
+				// use custom lambda with linear ramp
 				std::for_each(newClip.begin(), newClip.begin() + sampleRange, 
 					[&counter, sampleRange](std::pair<T,T> &sample) {
 						sample.first *= (counter / (float) sampleRange);
@@ -718,12 +745,13 @@ namespace WHTMIC023 {
 			AudioClip fadeout(float n) {
 				cout << "Performing fadeout operation..." << endl;
 
-				// use custom lambda with linear ramp
+				// copy this
 				AudioClip newClip = *this;
 
 				int sampleRange = n * sampleRate;
 				int counter = 0;
 
+				// use custom lambda with linear ramp
 				std::for_each(newClip.end() - sampleRange, newClip.end(), 
 					[&counter, sampleRange](std::pair<T,T> &sample) {
 						sample.first *= 1.0f - (counter / (float) sampleRange);

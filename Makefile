@@ -33,7 +33,7 @@ add: $(TARGET)
 
 cut: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 44100 -b 16 -c 1 -o test -cut 0 200000 $(SOUNDFILEDIR)/countdown40sec_44100_signed_16bit_mono.raw
+	./samp -r 44100 -b 16 -c 2 -o test -cut 0 200000 $(SOUNDFILEDIR)/countdown40sec_44100_signed_16bit_stereo.raw
 
 rangeadd: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
@@ -45,31 +45,27 @@ concatenate: $(TARGET)
 
 volume: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 44100 -b 8 -c 1 -o test -v 0.1 0.1 $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw
+	./samp -r 44100 -b 8 -c 2 -o test -v 0.1 0.1 $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_stereo.raw
 
 reverse: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
 	./samp -r 44100 -b 16 -c 1 -o test -rev $(SOUNDFILEDIR)/countdown40sec_44100_signed_16bit_mono.raw  
 
-reverse_st: $(TARGET)
-	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 44100 -b 16 -c 2 -o test -rev $(SOUNDFILEDIR)/countdown40sec_44100_signed_16bit_stereo.raw  
-
 rms: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 44100 -b 8 -c 1 -o test -rms inputFile  
+	./samp -r 44100 -b 16 -c 1 -o test -rms $(SOUNDFILEDIR)/countdown40sec_44100_signed_16bit_mono.raw  
 
 norm: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 44100 -b 8 -c 1 -o test -norm rms1 rms2 inputFile  
+	./samp -r 44100 -b 8 -c 2 -o test -norm 4 15 $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_stereo.raw  
 
 fadein: $(TARGET)
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 44100 -b 8 -c 1 -o test -fadein numSeconds inputFile  
+	./samp -r 44100 -b 16 -c 2 -o test -fadein 10 $(SOUNDFILEDIR)/countdown40sec_44100_signed_16bit_stereo.raw  
 
-fadeout: $(TARGET)
+fadeout: $(TARGET)mono
 	export LD_LIBRARY_PATH=$(LIB)/; \
-	./samp -r 44100 -b 8 -c 1 -o test -fadeout numSeconds inputFile  
+	./samp -r 44100 -b 8 -c 1 -o test -fadeout 30 $(SOUNDFILEDIR)/countdown40sec_44100_signed_8bit_mono.raw  
 
 play:
 	play -r 44100 -b 8 -c 1 -e signed test_44100_8_mono.raw
