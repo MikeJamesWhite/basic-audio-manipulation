@@ -110,24 +110,47 @@ TEST_CASE("File IO - 16bit stereo") {
 // Basic operations & operators
 
 TEST_CASE("Baic Operations - 8bit mono") {
-    istringstream s1 ("5 12 14 13 15 16");
-    AudioClip<int8_t> clip ("sample_input/siren40sec_44100_signed_16bit_mono.raw", 44100, 8);
-    AudioClip<int8_t> clip2 ("sample_input/siren40sec_44100_signed_16bit_mono.raw", 44100, 8);
+    AudioClip<int8_t> clip ("sample_input/siren40sec_44100_signed_8bit_mono.raw", 44100, 8);
+    AudioClip<int8_t> clip2 ("sample_input/siren40sec_44100_signed_8bit_mono.raw", 44100, 8);
 
     auto iter = clip.begin();
 
     SECTION("Add") {
         AudioClip<int8_t> clip3 = clip + clip2;
-        REQUIRE(*iter == 12);
+        auto iter2 = clip2.begin();
+        auto iter3 = clip3.begin();
+
+        for (int i = 0; i < 5; i++) {
+            REQUIRE(*iter3 == (*iter + *iter2) );
+            iter++;
+            iter2++;
+            iter3++;
+        }
     }
 
     SECTION("Concat") {
         AudioClip<int8_t> clip3 = clip | clip2;
+        auto iter2 = clip2.begin();
+        auto iter3 = clip3.begin();
 
-        iter++;
-        REQUIRE(*iter == 14);
-        iter++;
-        REQUIRE(*iter == 13);
+        bool correct = true;
+
+        while (iter != clip.end()) {
+            if (*iter != *iter3)
+                correct = false;
+            iter++;
+            iter3++;
+        }
+
+        while (iter2 != clip2.end()) {
+            if (*iter2 != *iter3)
+                correct = false;
+            iter2++;
+            iter3++;
+        }
+
+        REQUIRE(correct);
+
     }
 
     SECTION("Cut") {
@@ -135,245 +158,254 @@ TEST_CASE("Baic Operations - 8bit mono") {
         auto iter3 = clip3.begin();
 
         REQUIRE(*iter == *iter3);
-        REQUIRE(clip3.)
+        iter3++;
+        iter3++;
+        iter3++;
+        REQUIRE(iter3 == clip3.end());
     }
 
     SECTION("Volume") {
-        auto iter2 = iter;
-        bool same = true;
-        while (iter != i.end()) {
-            if (*iter != *iter2)
-                same = false;
+        AudioClip<int8_t> clip3 = clip * std::pair<float, float>(0.5f, 0.5f);
+
+        auto iter3 = clip3.begin();
+        bool correct = true;
+        while (iter != clip.end()) {
+            if (*iter != (*iter3)*2)
+                correct = false;
+            iter++;
+            iter3++;
+        }
+        REQUIRE(correct);
+    }
+}
+
+TEST_CASE("Baic Operations - 16bit mono") {
+    AudioClip<int16_t> clip ("sample_input/siren40sec_44100_signed_16bit_mono.raw", 44100, 16);
+    AudioClip<int16_t> clip2 ("sample_input/siren40sec_44100_signed_16bit_mono.raw", 44100, 16);
+
+    auto iter = clip.begin();
+
+    SECTION("Add") {
+        AudioClip<int16_t> clip3 = clip + clip2;
+        auto iter2 = clip2.begin();
+        auto iter3 = clip3.begin();
+
+        for (int i = 0; i < 5; i++) {
+            REQUIRE(*iter3 == (*iter + *iter2) );
             iter++;
             iter2++;
+            iter3++;
         }
-        REQUIRE(same);
+    }
+
+    SECTION("Concat") {
+        AudioClip<int16_t> clip3 = clip | clip2;
+        auto iter2 = clip2.begin();
+        auto iter3 = clip3.begin();
+
+        bool correct = true;
+
+        while (iter != clip.end()) {
+            if (*iter != *iter3)
+                correct = false;
+            iter++;
+            iter3++;
+        }
+
+        while (iter2 != clip2.end()) {
+            if (*iter2 != *iter3)
+                correct = false;
+            iter2++;
+            iter3++;
+        }
+
+        REQUIRE(correct);
+    }
+
+    SECTION("Cut") {
+        AudioClip<int16_t> clip3 = clip ^ std::pair<int, int>(0, 2);
+        auto iter3 = clip3.begin();
+
+        REQUIRE(*iter == *iter3);
+        iter3++;
+        iter3++;
+        iter3++;
+        REQUIRE(iter3 == clip3.end());
+    }
+
+    SECTION("Volume") {
+        AudioClip<int16_t> clip3 = clip * std::pair<float, float>(0.5f, 0.5f);
+
+        auto iter3 = clip3.begin();
+        bool correct = true;
+        while (iter != clip.end()) {
+            if (*iter != (*iter3)*2)
+                correct = false;
+            iter++;
+            iter3++;
+        }
+        REQUIRE(correct);
     }
 }
 
-// Move & Copy Semantics
+TEST_CASE("Baic Operations - 8bit stereo") {
+    AudioClip<std::pair<int8_t, int8_t> > clip ("sample_input/siren40sec_44100_signed_8bit_stero.raw", 44100, 8);
+    AudioClip<std::pair<int8_t, int8_t> > clip2 ("sample_input/siren40sec_44100_signed_8bit_stereo.raw", 44100, 8);
 
-TEST_CASE("Copying") {
-    istringstream s ("5 12 14 13 15 16");
-    Image i(s);
-    Image j (i);
+    auto iter = clip.begin();
 
-    auto iter = j.begin();
-    REQUIRE(*iter == 12);
-    iter++;
-    REQUIRE(*iter == 14);
-    iter++;
-    REQUIRE(*iter == 13);
-    iter++;
-    REQUIRE(*iter == 15);
-    iter++;
-    REQUIRE(*iter == 16);
-}
+    SECTION("Add") {
+        AudioClip<std::pair<int8_t, int8_t>> clip3 = clip + clip2;
+        auto iter2 = clip2.begin();
+        auto iter3 = clip3.begin();
 
-TEST_CASE("Moving") {
-    istringstream s ("5 12 14 13 15 16");
-    Image i(s);
-    Image j = move(i);
-
-    auto iter = j.begin();
-    REQUIRE(*iter == 12);
-    iter++;
-    REQUIRE(*iter == 14);
-    iter++;
-    REQUIRE(*iter == 13);
-    iter++;
-    REQUIRE(*iter == 15);
-    iter++;
-    REQUIRE(*iter == 16);
-}
-
-// Image operations
-
-TEST_CASE("Image Operations") {
-    istringstream s1 ("5 12 14 13 15 16");
-    Image i(s1);
-
-    SECTION("Addition") {
-        istringstream s2 ("5 12 14 13 15 255");
-        Image j(s2);
-        Image k = Image::add(i,j);
-        auto iter = k.begin();
-        REQUIRE(*iter == 24);
-        iter++;
-        REQUIRE(*iter == 28);
-        iter++;
-        REQUIRE(*iter == 26);
-        iter++;
-        REQUIRE(*iter == 30);
-        iter++;
-        REQUIRE(*iter == 255);
+        for (int i = 0; i < 5; i++) {
+            REQUIRE(iter3 -> first == (iter -> first + iter2 -> first) );
+            iter++;
+            iter2++;
+            iter3++;
+        }
     }
-    SECTION("Subtraction") {
-        istringstream s2 ("5 10 12 10 11 255");
-        Image j(s2);
-        Image k = Image::subtract(i,j);
-        auto iter = k.begin();
-        REQUIRE(*iter == 2);
-        iter++;
-        REQUIRE(*iter == 2);
-        iter++;
-        REQUIRE(*iter == 3);
-        iter++;
-        REQUIRE(*iter == 4);
-        iter++;
-        REQUIRE(*iter == 0);
+
+    SECTION("Concat") {
+        AudioClip<std::pair<int8_t, int8_t>> clip3 = clip | clip2;
+        auto iter2 = clip2.begin();
+        auto iter3 = clip3.begin();
+
+        bool correct = true;
+
+        while (iter != clip.end()) {
+            if (*iter != *iter3)
+                correct = false;
+            iter++;
+            iter3++;
+        }
+
+        while (iter2 != clip2.end()) {
+            if (*iter2 != *iter3)
+                correct = false;
+            iter2++;
+            iter3++;
+        }
+
+        REQUIRE(correct);
+
     }
-    SECTION("Masking") {
-        istringstream s2 ("5 0 0 255 0 255");
-        Image j(s2);
-        Image k = Image::mask(i,j);
-        auto iter = k.begin();
-        REQUIRE(*iter == 0);
-        iter++;
-        REQUIRE(*iter == 0);
-        iter++;
-        REQUIRE(*iter == 13);
-        iter++;
-        REQUIRE(*iter == 0);
-        iter++;
-        REQUIRE(*iter == 16);
+
+    SECTION("Cut") {
+        AudioClip<std::pair<int8_t, int8_t>> clip3 = clip ^ std::pair<int, int>(0, 2);
+        auto iter3 = clip3.begin();
+
+        REQUIRE(*iter == *iter3);
+        iter3++;
+        iter3++;
+        iter3++;
+        REQUIRE(iter3 == clip3.end());
     }
-    SECTION("Thresholding") {
-        int t = 12;
-        Image k = Image::threshold(i, t);
-        auto iter = k.begin();
-        REQUIRE(*iter == 0);
-        iter++;
-        REQUIRE(*iter == 255);
-        iter++;
-        REQUIRE(*iter == 255);
-        iter++;
-        REQUIRE(*iter == 255);
-        iter++;
-        REQUIRE(*iter == 255);
-    }
-    SECTION("Inverting") {
-        Image k = Image::invert(i);
-        auto iter = k.begin();
-        REQUIRE(*iter == 255 - 12);
-        iter++;
-        REQUIRE(*iter == 255 - 14);
-        iter++;
-        REQUIRE(*iter == 255 - 13);
-        iter++;
-        REQUIRE(*iter == 255 - 15);
-        iter++;
-        REQUIRE(*iter == 255 - 16);
-    }
-    SECTION("Filtering") {
-        istringstream s2("5 120 126 170 200 250");
-        Image j (s2);
-        Image k = Image::filter(j, Filter("./sample_filters/unity.fir"));
-        auto iter = k.begin();
-        REQUIRE(*iter == 120);
-        iter++;
-        REQUIRE(*iter == 126);
-        iter++;
-        REQUIRE(*iter == 170);
-        iter++;
-        REQUIRE(*iter == 200);
-        iter++;
-        REQUIRE(*iter == 250);
+
+    SECTION("Volume") {
+        AudioClip<std::pair<int8_t, int8_t>> clip3 = clip * std::pair<float, float>(0.5f, 0.5f);
+
+        auto iter3 = clip3.begin();
+        bool correct = true;
+        while (iter != clip.end()) {
+            if (iter -> first != iter3 -> first * 2)
+                correct = false;
+            if (iter -> second != iter3 -> second * 2)
+                correct = false;
+            iter++;
+            iter3++;
+        }
+        REQUIRE(correct);
     }
 }
 
-// Image operator overloads
+TEST_CASE("Baic Operations - 16bit stereo") {
+    AudioClip<std::pair<int16_t, int16_t> > clip ("sample_input/siren40sec_44100_signed_16bit_stereo.raw", 44100, 16);
+    AudioClip<std::pair<int16_t, int16_t> > clip2 ("sample_input/siren40sec_44100_signed_16bit_stereo.raw", 44100, 16);
 
-TEST_CASE("Image Operator Overloads") {
-    istringstream s1 ("5 12 14 13 15 16");
-    Image i(s1);
+    auto iter = clip.begin();
 
-    SECTION("Addition") {
-        istringstream s2 ("5 12 14 13 15 255");
-        Image j(s2);
-        Image k = i+j;
-        auto iter = k.begin();
-        REQUIRE(*iter == 24);
-        iter++;
-        REQUIRE(*iter == 28);
-        iter++;
-        REQUIRE(*iter == 26);
-        iter++;
-        REQUIRE(*iter == 30);
-        iter++;
-        REQUIRE(*iter == 255);
-    }
-    SECTION("Subtraction") {
-        istringstream s2 ("5 10 12 10 11 255");
-        Image j(s2);
-        Image k = i-j;
-        auto iter = k.begin();
-        REQUIRE(*iter == 2);
-        iter++;
-        REQUIRE(*iter == 2);
-        iter++;
-        REQUIRE(*iter == 3);
-        iter++;
-        REQUIRE(*iter == 4);
-        iter++;
-        REQUIRE(*iter == 0);
-    }
-    SECTION("Masking") {
-        istringstream s2 ("5 0 0 255 0 255");
-        Image j(s2);
-        Image k = i/j;
-        auto iter = k.begin();
-        REQUIRE(*iter == 0);
-        iter++;
-        REQUIRE(*iter == 0);
-        iter++;
-        REQUIRE(*iter == 13);
-        iter++;
-        REQUIRE(*iter == 0);
-        iter++;
-        REQUIRE(*iter == 16);
-    }
-    SECTION("Thresholding") {
-        int t = 12;
-        Image k = i * t;
-        auto iter = k.begin();
-        REQUIRE(*iter == 0);
-        iter++;
-        REQUIRE(*iter == 255);
-        iter++;
-        REQUIRE(*iter == 255);
-        iter++;
-        REQUIRE(*iter == 255);
-        iter++;
-        REQUIRE(*iter == 255);
-    }
-    SECTION("Inverting") {
-        Image k = !i;
-        auto iter = k.begin();
-        REQUIRE(*iter == 255 - 12);
-        iter++;
-        REQUIRE(*iter == 255 - 14);
-        iter++;
-        REQUIRE(*iter == 255 - 13);
-        iter++;
-        REQUIRE(*iter == 255 - 15);
-        iter++;
-        REQUIRE(*iter == 255 - 16);
-    }
-    SECTION("Filtering") {
-        istringstream s2("5 120 126 170 200 250");
-        Image j (s2);
-        Image k = j % Filter("./sample_filters/unity.fir");
-        auto iter = k.begin();
-        REQUIRE(*iter == 120);
-        iter++;
-        REQUIRE(*iter == 126);
-        iter++;
-        REQUIRE(*iter == 170);
-        iter++;
-        REQUIRE(*iter == 200);
-        iter++;
-        REQUIRE(*iter == 250);
+    SECTION("Add") {
+        AudioClip<std::pair<int16_t, int16_t> > clip3 = clip + clip2;
+        auto iter2 = clip2.begin();
+        auto iter3 = clip3.begin();
 
+        for (int i = 0; i < 5; i++) {
+            REQUIRE(iter3 -> first == (iter -> first + iter2 -> first) );
+            iter++;
+            iter2++;
+            iter3++;
+        }
     }
+
+    SECTION("Concat") {
+        AudioClip<std::pair<int16_t, int16_t> > clip3 = clip | clip2;
+        auto iter2 = clip2.begin();
+        auto iter3 = clip3.begin();
+
+        bool correct = true;
+
+        while (iter != clip.end()) {
+            if (*iter != *iter3)
+                correct = false;
+            iter++;
+            iter3++;
+        }
+
+        while (iter2 != clip2.end()) {
+            if (*iter2 != *iter3)
+                correct = false;
+            iter2++;
+            iter3++;
+        }
+
+        REQUIRE(correct);
+    }
+
+    SECTION("Cut") {
+        AudioClip<std::pair<int16_t, int16_t> > clip3 = clip ^ std::pair<int, int>(0, 2);
+        auto iter3 = clip3.begin();
+
+        REQUIRE(*iter == *iter3);
+        iter3++;
+        iter3++;
+        iter3++;
+        REQUIRE(iter3 == clip3.end());
+    }
+
+    SECTION("Volume") {
+        AudioClip<std::pair<int16_t, int16_t> > clip3 = clip * std::pair<float, float>(0.5f, 0.5f);
+
+        auto iter3 = clip3.begin();
+        bool correct = true;
+        while (iter != clip.end()) {
+            if (iter -> first != iter3 -> first * 2)
+                correct = false;
+            if (iter -> second != iter3 -> second * 2)
+                correct = false;
+            iter++;
+            iter3++;
+        }
+        REQUIRE(correct);
+    }
+}
+
+// RMS & Normalization
+
+TEST_CASE("RMS") {
+
+}
+
+TEST_CASE("Normalization") {
+
+}
+
+// Fadein & Fadeout
+TEST_CASE("Fadein") {
+
+}
+
+TEST_CASE("Fadeout") {
+
 }
