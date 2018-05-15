@@ -114,7 +114,7 @@ namespace WHTMIC023 {
 			}
 
 			// destructor
-			~AudioClip() {}
+			~AudioClip() { }
 
 			// copy constructor
 			AudioClip(AudioClip& otherClip) {
@@ -300,8 +300,8 @@ namespace WHTMIC023 {
 				cout << "Calculating RMS..." << endl;
 
 				// calculate rms using std::accumulate and custom lambda
-				float ms = std::accumulate(begin(), end(), *(begin()) * *(begin()), 
-					[](T a, T b) {  
+				float ms = std::accumulate(begin(), end(), 0, 
+					[] (T a, T b) {  
             			return a + (b*b);  
         			});
 
